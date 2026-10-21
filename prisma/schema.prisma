@@ -13,6 +13,12 @@ enum Provider {
   GITHUB
 }
 
+enum NotificationKind {
+  RELEASE
+  STARS
+  ARCHIVED
+}
+
 enum SnapshotSource {
   SEARCH
   DETAILS
@@ -37,6 +43,8 @@ model User {
   savedRepositories SavedRepository[]
   collections       Collection[]
   savedSearches     SavedSearch[]
+  watches           RepositoryWatch[]
+  notifications     Notification[]
 
   @@map("user")
 }
@@ -151,6 +159,53 @@ model SavedSearch {
   updatedAt DateTime @updatedAt
 
   @@index([userId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Alerts (checked periodically by /api/cron/alerts; never real-time)
+// ---------------------------------------------------------------------------
+
+/// A user's subscription to changes in one repository. The last* fields are the baseline
+/// from the previous check; the first check only records a baseline.
+model RepositoryWatch {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       Provider  @default(GITHUB)
+  providerRepoId String
+  fullName       String
+  notifyRelease  Boolean   @default(true)
+  notifyArchived Boolean   @default(true)
+  /// Notify once when stars reach this number (null = off).
+  starThreshold  Int?
+  lastReleaseTag String?
+  lastStars      Int?
+  lastArchived   Boolean?
+  lastCheckedAt  DateTime?
+  createdAt      DateTime  @default(now())
+
+  notifications Notification[]
+
+  @@unique([userId, provider, providerRepoId])
+  @@index([lastCheckedAt])
+}
+
+/// An in-app alert produced by a watch check.
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  watchId   String?
+  watch     RepositoryWatch? @relation(fields: [watchId], references: [id], onDelete: SetNull)
+  kind      NotificationKind
+  title     String           @db.VarChar(200)
+  body      String           @db.VarChar(1000)
+  url       String           @db.VarChar(500)
+  /// When the change was observed by RepoAtlas.
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+
+  @@index([userId, readAt, createdAt])
 }
 
 // ---------------------------------------------------------------------------

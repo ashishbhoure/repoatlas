@@ -16,13 +16,24 @@ services:
       timeout: 5s
       retries: 10
 
-  # Full app container. Not needed for `pnpm dev`; use `docker compose --profile app up`.
+  # Full stack in containers. Not needed for `pnpm dev`; use `docker compose --profile app up --build`.
+  migrate:
+    profiles: ["app"]
+    build:
+      context: .
+      target: migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://repoatlas:repoatlas@postgres:5432/repoatlas
+
   app:
     profiles: ["app"]
     build: .
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     env_file: .env.local
     environment:
       DATABASE_URL: postgresql://repoatlas:repoatlas@postgres:5432/repoatlas

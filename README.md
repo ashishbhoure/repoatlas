@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RepoAtlas
 
-## Getting Started
+Find open-source repositories worth building on. RepoAtlas searches every public GitHub
+repository with advanced filters, ranks them with transparent, versioned scores, and lets you
+compare, save and watch projects.
 
-First, run the development server:
+- **Explore** — keyword search plus filters for language, topics, license, stars, forks, size,
+  creation date, last push, archived/fork status, owner and good-first-issues. Every filter is
+  applied by GitHub across all matches; the exact query sent to GitHub is shown under the results.
+- **Discovery** — Most starred, Most forked, Recently updated, Recently created, Trending
+  (measured growth + new & notable), Hidden gems, Topics and Awesome lists.
+- **Repository pages** — metadata, latest release, languages, contributors, weekly commit
+  activity, a sanitized README, star history recorded by RepoAtlas, related repositories and a
+  documented **health score**.
+- **Compare** — up to four repositories side by side, with small-multiple charts and a shareable URL.
+- **Accounts** (GitHub sign-in) — saved repositories with notes, collections (private by
+  default, link sharing optional, Markdown/JSON export), saved searches, watches with in-app
+  alerts, data export and account deletion.
+- **AI search** (optional) — describe what you need in plain English; Claude proposes filters,
+  you review them, and the regular search runs.
+
+Nothing is fabricated: metrics come from the GitHub API or from observations RepoAtlas recorded,
+and every page says when its data was fetched. See [docs/RANKING.md](docs/RANKING.md) and the
+in-app *How rankings work* page.
+
+## Stack
+
+Next.js 16 (App Router, Cache Components) · React 19 · TypeScript (strict) · Tailwind CSS 4 ·
+shadcn/ui · TanStack Query · Zod · Recharts · PostgreSQL 17 ·
+Prisma 7 · Better Auth (GitHub OAuth) · Anthropic SDK · Vitest · Testing Library · Playwright · MSW.
+
+## Quick start (local)
+
+Prerequisites: Node.js 22+ (24 recommended), pnpm 10+, Docker.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install                # also generates the Prisma client
+cp .env.example .env.local  # then edit values (see below)
+pnpm db:up                  # PostgreSQL on localhost:5433 via Docker Compose
+pnpm db:migrate             # apply migrations
+pnpm dev                    # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Exploring works with only `DATABASE_URL` and `APP_URL` set. For usable GitHub limits set
+`GITHUB_TOKEN`; for accounts set the auth variables.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | PostgreSQL connection string |
+| `APP_URL` | yes | Public base URL, e.g. `http://localhost:3000` |
+| `GITHUB_TOKEN` | recommended | Server-side token for public data. A fine-grained PAT with *Public repositories (read-only)* is enough. Without it GitHub allows 10 searches/min and 60 other requests/hour per server IP. |
+| `AUTH_SECRET` | for accounts | Random string, 32+ characters |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | for accounts | GitHub OAuth App credentials |
+| `CRON_SECRET` | for scheduled jobs | Bearer secret for `/api/cron/*` |
+| `ANTHROPIC_API_KEY` | for AI search | Enables natural-language search |
 
-## Learn More
+Optional integrations switch themselves off when their variables are missing; the `/status`
+page shows what is configured. Secrets are server-only (none use the `NEXT_PUBLIC_` prefix).
 
-To learn more about Next.js, take a look at the following resources:
+### GitHub OAuth setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. GitHub → Settings → Developer settings → **OAuth Apps** → New OAuth App.
+2. Homepage URL: your `APP_URL`. Authorization callback URL: `{APP_URL}/api/auth/callback/github`.
+3. Copy the client ID and generate a client secret into `.env.local`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+RepoAtlas requests only `read:user` and `user:email`. Users' OAuth tokens are stored encrypted
+and are never used for GitHub API calls; public data always uses the server's `GITHUB_TOKEN`.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command | What it does |
+| --- | --- |
+| `pnpm dev` | Development server |
+| `pnpm build` / `pnpm start` | Production build / server |
+| `pnpm lint` · `pnpm typecheck` | ESLint · TypeScript |
+| `pnpm test` | Unit, integration (uses `repoatlas_test` database) and component tests |
+| `pnpm test:e2e` | Playwright against a production build + mock GitHub API (run `pnpm build` first) |
+| `pnpm check` | lint + typecheck + tests + build |
+| `pnpm db:up` · `db:migrate` · `db:deploy` · `db:studio` | Database helpers |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Documentation
+
+- [Product requirements](docs/PRD.md) · [Roadmap](docs/ROADMAP.md)
+- [Architecture](docs/ARCHITECTURE.md) · [Database](docs/DATABASE.md) · [API](docs/API.md)
+- [Search](docs/SEARCH.md) · [Ranking & scores](docs/RANKING.md)
+- [Security](docs/SECURITY.md) · [Deployment](docs/DEPLOYMENT.md) · [Testing](docs/TESTING.md)
+
+## Known limitations
+
+- GitHub search returns at most 1,000 results per query and allows 30 searches/minute with a token.
+- Contributor counts, release dates and commit activity are not searchable on GitHub; they appear
+  on repository and comparison pages only.
+- Trending/growth exists only for repositories RepoAtlas has observed at least twice, 20+ hours
+  apart. History starts when an instance first fetches a repository.
+- Alerts are checked every few hours by a scheduled job; they are not real-time and need
+  `CRON_SECRET` plus a scheduler.
+- Pages that resolve to "not found" after streaming has begun return HTTP 200 with a `noindex`
+  not-found page (a streaming limitation); API routes return proper 404s.
+
+## Troubleshooting
+
+- **"GitHub's rate limit was reached"** — set `GITHUB_TOKEN`; check `/status` for remaining quota.
+- **`Can't reach database server`** — `pnpm db:up`, and check `DATABASE_URL` uses port 5433 locally.
+- **Sign-in button missing** — all three auth variables must be set; restart the server.
+- **Prisma client errors after pulling** — `pnpm db:generate` then `pnpm db:migrate`.

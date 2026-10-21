@@ -1,4 +1,5 @@
 import {
+  Bell,
   Bookmark,
   Compass,
   Flame,
@@ -54,6 +55,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/saved", label: "Saved repositories", icon: Bookmark, requiresAuth: true },
       { href: "/collections", label: "Collections", icon: FolderHeart, requiresAuth: true },
       { href: "/saved-searches", label: "Saved searches", icon: Compass, requiresAuth: true },
+      { href: "/notifications", label: "Notifications", icon: Bell, requiresAuth: true },
       { href: "/settings", label: "Settings", icon: Settings, requiresAuth: true },
     ],
   },

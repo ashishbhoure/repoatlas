@@ -38,7 +38,7 @@ beforeAll(async () => {
 beforeEach(async (ctx) => {
   if (!dbUp) ctx.skip();
   await db().$executeRawUnsafe(
-    `TRUNCATE "user", "session", "account", "verification", "SavedRepository", "Collection", "CollectionRepository", "SavedSearch", "TrackedRepository", "RepositorySnapshot", "CacheEntry", "RateLimitBucket" CASCADE`,
+    `TRUNCATE "user", "session", "account", "verification", "SavedRepository", "Collection", "CollectionRepository", "SavedSearch", "TrackedRepository", "RepositorySnapshot", "CacheEntry", "RateLimitBucket", "RepositoryWatch", "Notification" CASCADE`,
   );
   await db().user.createMany({
     data: [

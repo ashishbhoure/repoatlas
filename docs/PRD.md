@@ -50,14 +50,17 @@ engineering teams, security researchers.
 - Snapshot collection: a repository snapshot is recorded (at most once per 6 h) whenever
   details are fetched, plus a cron endpoint that snapshots tracked repositories.
 
-## Post-MVP milestones
+## Delivered beyond the MVP
 
 1. Authentication (GitHub OAuth via Better Auth), saved repositories, collections, saved
-   searches, preferences.
-2. Alerts (in-app first) driven by snapshots.
-3. AI search: natural language → validated `SearchSpec` → the same search service.
-4. Measured trending once ≥ 2 snapshots exist per repository.
-5. Additional providers (GitLab, Bitbucket) through the provider interface.
+   searches, account export/deletion.
+2. Watches with in-app alerts (new release, star milestone, archived), checked by a cron job.
+3. AI search: natural language → validated `SearchSpec` → user review → the same search service.
+4. Measured trending, shown as soon as two observations ≥ 20 h apart exist.
+
+## Still planned
+
+See `docs/ROADMAP.md` (email alerts, more providers, health score v2, …).
 
 ## Acceptance criteria (MVP)
 

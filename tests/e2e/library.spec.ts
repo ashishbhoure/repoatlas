@@ -54,6 +54,28 @@ test.describe("accounts and library", () => {
     await expect(page.getByText("This collection is empty")).toBeVisible();
   });
 
+  test("watching a repository lists it with its alert settings", async ({ page, context, baseURL }) => {
+    await signIn(context, baseURL!, "watcher");
+    await page.goto("/repository/fixture-org/fixture-repo-5");
+    await page.getByTestId("watch-button").click();
+    await page.getByLabel("Star milestone (optional)").fill("60000");
+    const saved = page.waitForResponse((r) => r.url().endsWith("/api/watches") && r.request().method() === "PUT");
+    await page.getByRole("button", { name: "Watch repository" }).click();
+    expect((await saved).status()).toBe(200);
+    await expect(page.getByTestId("watch-button")).toHaveText(/Watching/);
+    await page.goto("/notifications");
+    await expect(page.getByText("Watching (1)")).toBeVisible();
+    await expect(page.getByText(/60,000 stars/)).toBeVisible();
+  });
+
+  test("scheduled jobs require the cron secret", async ({ request }) => {
+    expect((await request.get("/api/cron/alerts")).status()).toBe(401);
+    expect((await request.get("/api/cron/snapshots", { headers: { authorization: "Bearer wrong" } })).status()).toBe(401);
+    const ok = await request.get("/api/cron/alerts", { headers: { authorization: "Bearer e2e-cron-secret" } });
+    expect(ok.status()).toBe(200);
+    expect(await ok.json()).toHaveProperty("checked");
+  });
+
   test("saved searches restore the exact search", async ({ page, context, baseURL }) => {
     await signIn(context, baseURL!, "searcher");
     await page.goto("/explore?q=fixture&language=Rust&sort=stars");

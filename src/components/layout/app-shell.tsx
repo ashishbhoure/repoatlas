@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { features } from "@/config/env";
 import { getCurrentUser } from "@/lib/auth/session";
+import { NotificationsBell } from "@/components/alerts/notifications-bell";
 import { MobileNav } from "@/components/navigation/mobile-nav";
 import { SidebarNav } from "@/components/navigation/sidebar-nav";
 import { SearchCommand } from "@/components/search/search-command";
@@ -46,6 +47,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <SessionSearch />
             </Suspense>
           </div>
+          <Suspense fallback={null}>
+            <NotificationsBell />
+          </Suspense>
           <ThemeToggle />
           <Suspense fallback={<div className="size-8" />}>
             <SessionUserMenu />

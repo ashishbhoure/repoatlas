@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, FolderHeart, LogOut, Settings } from "lucide-react";
+import { Bell, Bookmark, FolderHeart, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -71,6 +71,9 @@ export function UserMenu({ user, authEnabled }: Props) {
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/collections"><FolderHeart /> Collections</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/notifications"><Bell /> Notifications</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/settings"><Settings /> Settings</Link>

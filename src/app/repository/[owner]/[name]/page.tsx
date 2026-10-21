@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { HealthCard } from "@/components/analytics/health-card";
 import { CommitActivityChart, StarHistoryChart } from "@/components/charts/charts";
+import { WatchButton } from "@/components/alerts/watch-button";
 import { AddToCollectionButton } from "@/components/collections/add-to-collection";
 import { ErrorState, FreshnessNote, ListSkeleton } from "@/components/feedback/states";
 import { LanguageTag } from "@/components/repository/metrics";
@@ -108,6 +109,7 @@ async function RepositoryContent({ params }: Pick<PageProps<"/repository/[owner]
             <>
               <SaveRepositoryButton repo={{ providerId: repo.providerId, fullName: repo.fullName }} initiallySaved={library.savedIds.has(repo.providerId)} signedIn={library.signedIn} size="sm" className="border" />
               <AddToCollectionButton repo={{ providerId: repo.providerId, fullName: repo.fullName }} signedIn={library.signedIn} />
+              <WatchButton repo={{ providerId: repo.providerId, fullName: repo.fullName }} signedIn={library.signedIn} stars={repo.stars} />
             </>
           )}
           <Button asChild variant="outline" size="sm">
