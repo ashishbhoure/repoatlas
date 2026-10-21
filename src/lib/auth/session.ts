@@ -1,5 +1,6 @@
 import "server-only";
 import { headers } from "next/headers";
+import { connection } from "next/server";
 import { cache } from "react";
 import { AppError } from "@/lib/errors";
 import { getAuth } from "./auth";
@@ -13,6 +14,8 @@ export interface SessionUser {
 
 /** Current user, or null when signed out or auth is not configured. Reads request headers. */
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
+  // Request-time: whether auth is configured must never be decided at build time.
+  await connection();
   const auth = getAuth();
   if (!auth) return null;
   const session = await auth.api.getSession({ headers: await headers() });

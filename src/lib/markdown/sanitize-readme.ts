@@ -43,7 +43,9 @@ export function sanitizeReadme(html: string, ctx: ReadmeContext): string {
   const heading = (tagName: string, attribs: Record<string, string>) => {
     const out: Record<string, string> = {};
     if (attribs.id && SAFE_ID.test(attribs.id)) out.id = attribs.id;
-    return { tagName, attribs: out };
+    // Demote one level (h1 → h2 …) so the page keeps a single h1: the repository name.
+    const level = Math.min(6, Number(tagName.slice(1)) + 1);
+    return { tagName: `h${level}`, attribs: out };
   };
 
   return sanitizeHtml(html, {
@@ -109,12 +111,13 @@ export function sanitizeReadme(html: string, ctx: ReadmeContext): string {
 }
 
 /**
- * Extracts h2/h3 headings for a table of contents (used for curated lists). GitHub places
- * the anchor id on an `<a class="anchor">` immediately after the heading.
+ * Extracts the README's h2/h3 sections (rendered as h3/h4 after demotion) for a table of
+ * contents. GitHub places the anchor id on an `<a class="anchor">` right after the heading.
+ * Levels are reported as written in the README.
  */
 export function extractHeadings(safeHtml: string): { level: 2 | 3; text: string; id: string }[] {
   const out: { level: 2 | 3; text: string; id: string }[] = [];
-  const re = /<h([23])[^>]*>([\s\S]*?)<\/h\1>\s*(?:<a[^>]*\bid="(user-content-[\w-]+)"[^>]*>)?/gi;
+  const re = /<h([34])[^>]*>([\s\S]*?)<\/h\1>\s*(?:<a[^>]*\bid="(user-content-[\w-]+)"[^>]*>)?/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(safeHtml)) && out.length < 200) {
     const id = m[3] ?? /id="(user-content-[\w-]+)"/.exec(m[0])?.[1];
@@ -122,7 +125,7 @@ export function extractHeadings(safeHtml: string): { level: 2 | 3; text: string;
       .replace(/&amp;/g, "&")
       .replace(/\s+/g, " ")
       .trim();
-    if (text && id) out.push({ level: Number(m[1]) as 2 | 3, text, id });
+    if (text && id) out.push({ level: (Number(m[1]) - 1) as 2 | 3, text, id });
   }
   return out;
 }

@@ -1,10 +1,10 @@
+import { caught } from "@/lib/errors/server";
 import { requestNow } from "@/lib/request-time";
 import Link from "next/link";
 import { EmptyState, ErrorState, FreshnessNote } from "@/components/feedback/states";
 import { RepoList, RepoRow } from "@/components/repository/repo-row";
 import { SaveRepositoryButton } from "@/components/repository/save-button";
 import { formatNumber } from "@/lib/format";
-import { toAppError } from "@/lib/errors";
 import { MAX_SEARCH_RESULTS, specToQueryString, type SearchSpec } from "@/lib/validation/search";
 import { getLibraryState } from "@/server/collections/library";
 import { searchRepositories, type SearchOutcome } from "@/server/repositories/search";
@@ -25,9 +25,9 @@ export async function SearchResults({ spec, basePath, ranked, emptyHint }: Props
   try {
     result = await searchRepositories(spec);
   } catch (e) {
-    return <ErrorState error={toAppError(e)} retryHref={`${basePath}${specToQueryString(spec)}`} />;
+    return <ErrorState error={caught(e)} retryHref={`${basePath}${specToQueryString(spec)}`} />;
   }
-  const now = requestNow();
+  const now = await requestNow();
   const library = await getLibraryState(result.items.map((r) => r.providerId));
   const first = (spec.page - 1) * spec.perPage + 1;
   const last = first + result.items.length - 1;
@@ -44,8 +44,8 @@ export async function SearchResults({ spec, basePath, ranked, emptyHint }: Props
               {result.totalCount === 1 ? "repository" : "repositories"}
               {result.items.length > 0 && (
                 <span className="text-muted-foreground">
-                  {" "}
-                  · showing {formatNumber(first)}–{formatNumber(last)}
+                  {", "}
+                  showing {formatNumber(first)}–{formatNumber(last)}
                 </span>
               )}
             </>

@@ -1,6 +1,8 @@
 import "server-only";
+import { connection } from "next/server";
 import type { DataFreshness } from "@/lib/cache/cached-fetch";
 import { isAppError } from "@/lib/errors";
+import { rethrowFrameworkErrors } from "@/lib/errors/server";
 import { sanitizeReadme } from "@/lib/markdown/sanitize-readme";
 import { log } from "@/lib/observability/logger";
 import { observeRepositories } from "@/server/analytics/observe";
@@ -28,6 +30,7 @@ async function optional<T>(label: string, p: Promise<{ data: T }>): Promise<T | 
   try {
     return (await p).data;
   } catch (e) {
+    rethrowFrameworkErrors(e);
     log.warn("repository.optional_failed", { label, code: isAppError(e) ? e.code : "unknown" });
     return undefined;
   }
@@ -35,6 +38,7 @@ async function optional<T>(label: string, p: Promise<{ data: T }>): Promise<T | 
 
 /** Core repository metadata plus everything needed for the health score. Throws NOT_FOUND. */
 export async function getRepositoryOverview(owner: string, name: string): Promise<RepositoryOverview> {
+  await connection();
   const provider = getProvider("github");
   const { data: repo, freshness } = await provider.getRepository(owner, name);
 

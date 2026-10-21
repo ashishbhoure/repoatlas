@@ -1,3 +1,4 @@
+import { caught } from "@/lib/errors/server";
 import { requestNow } from "@/lib/request-time";
 import { X } from "lucide-react";
 import type { Metadata } from "next";
@@ -8,7 +9,7 @@ import { AddRepoForm } from "@/components/compare/add-repo-form";
 import { ErrorState, ListSkeleton } from "@/components/feedback/states";
 import { MethodNote, PageHeader } from "@/components/layout/page-header";
 import { compareHref, parseCompareParam } from "@/features/repository-comparison/parse";
-import { toAppError, type AppError } from "@/lib/errors";
+import type { AppError } from "@/lib/errors";
 import { formatDate, formatNumber, formatRelative } from "@/lib/format";
 import { getSnapshotHistory } from "@/server/analytics/snapshots";
 import { getRepositoryOverview, type RepositoryOverview } from "@/server/repositories/details";
@@ -39,13 +40,13 @@ async function CompareContent({ searchParams }: Pick<PageProps<"/compare">, "sea
       try {
         return { name, slot, ok: true, overview: await getRepositoryOverview(owner, repo) };
       } catch (e) {
-        return { name, slot, ok: false, error: toAppError(e) };
+        return { name, slot, ok: false, error: caught(e) };
       }
     }),
   );
   const good = loaded.filter((l): l is Loaded & { ok: true; overview: RepositoryOverview } => l.ok);
   const canonical = loaded.map((l) => (l.ok ? l.overview.repo.fullName : l.name));
-  const now = requestNow();
+  const now = await requestNow();
 
   return (
     <div className="space-y-6">

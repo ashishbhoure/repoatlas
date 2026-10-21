@@ -78,7 +78,7 @@ export function CommitActivityChart({ weeks }: { weeks: { week: string; commits:
     <figure>
       <div className="h-44" role="img" aria-label={`Bar chart of weekly commits over ${weeks.length} weeks`}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={weeks} margin={{ top: 4, right: 4, bottom: 0, left: -16 }} barCategoryGap={2}>
+          <BarChart data={weeks} margin={{ top: 4, right: 4, bottom: 0, left: 0 }} barCategoryGap={2}>
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="0" />
             <XAxis
               dataKey="week"
@@ -89,7 +89,7 @@ export function CommitActivityChart({ weeks }: { weeks: { week: string; commits:
               minTickGap={40}
               tickFormatter={(w: string) => formatDate(w).replace(/, \d{4}$/, "")}
             />
-            <YAxis tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} width={40} />
+            <YAxis tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} width={36} />
             <Tooltip
               cursor={{ fill: "var(--muted)" }}
               content={(p: TipProps) =>
@@ -114,7 +114,7 @@ export function StarHistoryChart({ points }: { points: { observedAt: string; sta
     <figure>
       <div className="h-44" role="img" aria-label={`Line chart of stars across ${points.length} observations`}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -8 }}>
+          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis
               dataKey="t"
@@ -165,7 +165,7 @@ export function CompareMetricChart({
       <figcaption className="mb-1 text-sm font-medium">{title}</figcaption>
       <div className="h-40" role="img" aria-label={`Bar chart of ${title} per repository`}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -12 }} barCategoryGap="25%">
+          <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }} barCategoryGap="25%">
             <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis dataKey="name" tick={axisTick} tickLine={false} axisLine={{ stroke: "var(--border)" }} interval={0} />
             <YAxis tick={axisTick} tickLine={false} axisLine={false} width={44} tickFormatter={(v: number) => formatCount(v)} />
@@ -207,7 +207,7 @@ export function CompareHistoryChart({ series }: { series: { name: string; slot: 
     <figure>
       <div className="h-56" role="img" aria-label="Line chart comparing star counts over time">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -4 }}>
+          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis dataKey="t" type="number" scale="time" domain={["dataMin", "dataMax"]} tick={axisTick} tickLine={false} minTickGap={40}
               tickFormatter={(t: number) => formatDate(new Date(t).toISOString()).replace(/, \d{4}$/, "")} />

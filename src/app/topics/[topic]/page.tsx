@@ -1,3 +1,4 @@
+import { caught, rethrowFrameworkErrors } from "@/lib/errors/server";
 import { requestNow } from "@/lib/request-time";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7,7 +8,6 @@ import { ErrorState, FreshnessNote, ListSkeleton } from "@/components/feedback/s
 import { LanguageTag } from "@/components/repository/metrics";
 import { RepoList, RepoRow } from "@/components/repository/repo-row";
 import { categoriesForTopic } from "@/config/topics";
-import { toAppError } from "@/lib/errors";
 import { formatCount } from "@/lib/format";
 import { searchSpecSchema, specToQueryString, type SearchSpecInput } from "@/lib/validation/search";
 import { tally } from "@/server/analytics/aggregates";
@@ -78,7 +78,8 @@ async function TopicHeader({ topic }: { topic: string }) {
   let info = null;
   try {
     info = (await getProvider("github").getTopic(topic)).data;
-  } catch {
+  } catch (e) {
+    rethrowFrameworkErrors(e);
     info = null;
   }
   return (
@@ -103,9 +104,9 @@ async function TopicSection(props: { title: string; method: string; spec: Search
   try {
     result = await searchRepositories(spec);
   } catch (e) {
-    return <ErrorState error={toAppError(e)} retryHref={`/topics/${props.topic}`} />;
+    return <ErrorState error={caught(e)} retryHref={`/topics/${props.topic}`} />;
   }
-  const now = requestNow();
+  const now = await requestNow();
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between gap-3">
@@ -135,7 +136,8 @@ async function TopicSidebar({ topic, spec }: { topic: string; spec: SearchSpecIn
   let result;
   try {
     result = await searchRepositories(searchSpecSchema.parse(spec));
-  } catch {
+  } catch (e) {
+    rethrowFrameworkErrors(e);
     return null;
   }
   const sample = result.items;

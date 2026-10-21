@@ -1,3 +1,4 @@
+import { caught } from "@/lib/errors/server";
 import { requestNow } from "@/lib/request-time";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -8,7 +9,6 @@ import { LanguageTag } from "@/components/repository/metrics";
 import { RepoList, RepoRow } from "@/components/repository/repo-row";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth/session";
-import { toAppError } from "@/lib/errors";
 import { formatCount } from "@/lib/format";
 import { searchSpecSchema, type SearchSpecInput } from "@/lib/validation/search";
 import { tally } from "@/server/analytics/aggregates";
@@ -132,9 +132,9 @@ async function SectionBody({ spec, aside }: { spec: SearchSpecInput; aside?: "la
   try {
     result = await searchRepositories(searchSpecSchema.parse(spec));
   } catch (e) {
-    return <ErrorState error={toAppError(e)} retryHref="/" />;
+    return <ErrorState error={caught(e)} retryHref="/" />;
   }
-  const now = requestNow();
+  const now = await requestNow();
   {
     if (aside) {
       const rows =

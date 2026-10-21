@@ -6,6 +6,7 @@ import { Filters } from "@/components/filters/filter-panel";
 import { PageHeader } from "@/components/layout/page-header";
 import { FilterChips } from "@/components/search/filter-chips";
 import { ParamIssues } from "@/components/search/param-issues";
+import { AiSearchPanel } from "@/components/search/ai-search-panel";
 import { SaveSearchButton, SearchBox, SortSelect } from "@/components/search/search-controls";
 import { SearchResults } from "@/components/search/search-results";
 import { features } from "@/config/env";
@@ -48,6 +49,7 @@ async function ExploreContent({ searchParams }: Pick<PageProps<"/explore">, "sea
   return (
     <>
       <SearchBox key={`q-${spec.q}`} spec={spec} basePath="/explore" autoFocus={!active} />
+      {features.aiSearch() && <AiSearchPanel />}
       <ParamIssues issues={issues} />
       <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <div className="lg:sticky lg:top-20 lg:self-start">

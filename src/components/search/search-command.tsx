@@ -79,12 +79,15 @@ export function SearchCommand({ signedIn }: { signedIn: boolean }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-9 w-full max-w-xl items-center gap-2 rounded-md border border-input bg-card px-3 text-left text-sm text-muted-foreground shadow-xs transition-colors hover:border-primary/50"
+        className="flex h-9 w-full min-w-0 max-w-xl items-center gap-2 rounded-md border border-input bg-card px-3 text-left text-sm text-muted-foreground shadow-xs transition-colors hover:border-primary/50"
         aria-label="Search repositories"
         data-testid="search-trigger"
       >
         <Search className="size-4 shrink-0" aria-hidden />
-        <span className="flex-1 truncate">Search repositories, topics, pages…</span>
+        <span className="min-w-0 flex-1 truncate">
+          <span className="sm:hidden">Search</span>
+          <span className="hidden sm:inline">Search repositories, topics, pages…</span>
+        </span>
         <kbd className="hidden rounded border bg-muted px-1.5 py-0.5 font-sans text-[0.7rem] sm:inline">Ctrl K</kbd>
       </button>
       <CommandDialog open={open} onOpenChange={setOpen} title="Search RepoAtlas" description="Search GitHub repositories, open a repository or jump to a page.">

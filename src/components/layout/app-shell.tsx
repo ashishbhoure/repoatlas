@@ -14,7 +14,9 @@ import { UserMenu } from "./user-menu";
  * the parts that depend on the session stream in behind Suspense boundaries.
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const authEnabled = features.auth();
+  // Static fallbacks assume no account features; the request-time parts below read the
+  // real configuration, so the build never bakes in whether auth is configured.
+  const authEnabled = false;
   return (
     <div className="flex min-h-dvh">
       <a
@@ -28,25 +30,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Logo />
         </div>
         <Suspense fallback={<SidebarNav signedIn={false} authEnabled={authEnabled} />}>
-          <SessionSidebar authEnabled={authEnabled} />
+          <SessionSidebar />
         </Suspense>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/90 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/75 sm:px-5">
           <Suspense fallback={<MobileNav signedIn={false} authEnabled={authEnabled} />}>
-            <SessionMobileNav authEnabled={authEnabled} />
+            <SessionMobileNav />
           </Suspense>
-          <div className="lg:hidden">
-            <Logo />
+          <div className="shrink-0 lg:hidden">
+            <Logo compact />
           </div>
-          <div className="flex flex-1 justify-center px-1 sm:px-4">
+          <div className="flex min-w-0 flex-1 justify-center px-1 sm:px-4">
             <Suspense fallback={<SearchCommand signedIn={false} />}>
               <SessionSearch />
             </Suspense>
           </div>
           <ThemeToggle />
           <Suspense fallback={<div className="size-8" />}>
-            <SessionUserMenu authEnabled={authEnabled} />
+            <SessionUserMenu />
           </Suspense>
         </header>
         <main id="main" className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
@@ -70,14 +72,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-async function SessionSidebar({ authEnabled }: { authEnabled: boolean }) {
+async function SessionSidebar() {
   const user = await getCurrentUser();
-  return <SidebarNav signedIn={!!user} authEnabled={authEnabled} />;
+  return <SidebarNav signedIn={!!user} authEnabled={features.auth()} />;
 }
 
-async function SessionMobileNav({ authEnabled }: { authEnabled: boolean }) {
+async function SessionMobileNav() {
   const user = await getCurrentUser();
-  return <MobileNav signedIn={!!user} authEnabled={authEnabled} />;
+  return <MobileNav signedIn={!!user} authEnabled={features.auth()} />;
 }
 
 async function SessionSearch() {
@@ -85,7 +87,7 @@ async function SessionSearch() {
   return <SearchCommand signedIn={!!user} />;
 }
 
-async function SessionUserMenu({ authEnabled }: { authEnabled: boolean }) {
+async function SessionUserMenu() {
   const user = await getCurrentUser();
-  return <UserMenu user={user} authEnabled={authEnabled} />;
+  return <UserMenu user={user} authEnabled={features.auth()} />;
 }

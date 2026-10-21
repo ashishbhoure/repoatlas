@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
@@ -7,7 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // `server-only` throws outside the React Server condition; tests import server modules directly.
-      "server-only": new URL("./tests/setup/empty.ts", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"),
+      "server-only": fileURLToPath(new URL("./tests/setup/empty.ts", import.meta.url)),
     },
   },
   test: {
@@ -19,6 +20,9 @@ export default defineConfig({
           environment: "node",
           include: ["tests/unit/**/*.test.ts", "tests/integration/**/*.test.ts"],
           setupFiles: ["tests/setup/node.ts"],
+          globalSetup: ["tests/setup/global-db.ts"],
+          // Database tests share one database; run files sequentially.
+          fileParallelism: false,
         },
       },
       {

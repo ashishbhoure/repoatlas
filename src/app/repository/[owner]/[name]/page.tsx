@@ -1,3 +1,4 @@
+import { caught, rethrowFrameworkErrors } from "@/lib/errors/server";
 import { requestNow } from "@/lib/request-time";
 import { Archive, ExternalLink, GitCompareArrows, Globe, Tag } from "lucide-react";
 import type { Metadata } from "next";
@@ -15,7 +16,7 @@ import { CopyButton, ShareButton } from "@/components/repository/share-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LANGUAGE_COLORS } from "@/config/filters";
-import { isAppError, toAppError } from "@/lib/errors";
+import { isAppError } from "@/lib/errors";
 import { formatBytesFromKb, formatCount, formatDate, formatNumber, formatRelative } from "@/lib/format";
 import { extractHeadings } from "@/lib/markdown/sanitize-readme";
 import { searchSpecSchema } from "@/lib/validation/search";
@@ -60,11 +61,12 @@ async function RepositoryContent({ params }: Pick<PageProps<"/repository/[owner]
   try {
     overview = await getRepositoryOverview(owner, name);
   } catch (e) {
+    rethrowFrameworkErrors(e);
     if (isAppError(e) && (e.code === "NOT_FOUND" || e.code === "INVALID_INPUT")) notFound();
-    return <ErrorState error={toAppError(e)} retryHref={`/repository/${owner}/${name}`} />;
+    return <ErrorState error={caught(e)} retryHref={`/repository/${owner}/${name}`} />;
   }
   const { repo } = overview;
-  const now = requestNow();
+  const now = await requestNow();
   const library = await getLibraryState([repo.providerId]);
   const isAwesomeList = repo.topics.includes("awesome-list") || repo.topics.includes("awesome");
 
@@ -268,7 +270,7 @@ function Languages({ languages }: { languages: Record<string, number> | null | u
         {parts.map(([lang, bytes]) => (
           <li key={lang} className="flex justify-between gap-2">
             {lang === "Other" ? <span className="text-muted-foreground">Other</span> : <LanguageTag language={lang} />}
-            <span className="text-muted-foreground tabular">{((bytes / total) * 100).toFixed(1)}%</span>
+            <span className="text-muted-foreground tabular">{bytes / total < 0.001 ? "<0.1" : ((bytes / total) * 100).toFixed(1)}%</span>
           </li>
         ))}
       </ul>
@@ -341,7 +343,7 @@ async function Readme({ repo, awesome }: { repo: RepositoryDetails; awesome: boo
   try {
     readme = await getSanitizedReadme(repo);
   } catch (e) {
-    return <ErrorState error={toAppError(e)} />;
+    return <ErrorState error={caught(e)} />;
   }
   if (!readme.html) {
     return <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">This repository has no README.</p>;
@@ -388,12 +390,13 @@ async function Related({ repo }: { repo: RepositoryDetails }) {
   let result;
   try {
     result = await searchRepositories(spec);
-  } catch {
+  } catch (e) {
+    rethrowFrameworkErrors(e);
     return null;
   }
   const items = result.items.filter((r) => r.providerId !== repo.providerId).slice(0, 5);
   if (items.length === 0) return null;
-  const now = requestNow();
+  const now = await requestNow();
   const method =
     topics.length > 1
       ? `Most-starred repositories tagged “${topics[0]}” that also mention “${topics[1]}”.`

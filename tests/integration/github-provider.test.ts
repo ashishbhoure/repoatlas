@@ -124,6 +124,23 @@ describe("GitHubProvider.search", () => {
     expect(calls).toBe(1);
   });
 
+  it("recognises secondary rate limits that arrive without rate-limit headers", async () => {
+    server.use(
+      http.get(`${BASE}/search/repositories`, () =>
+        HttpResponse.json({ message: "You have exceeded a secondary rate limit. Please wait a few minutes." }, { status: 403 }),
+      ),
+    );
+    const err = await make().search(DEFAULT_SPEC).catch((e) => e);
+    expect(err.code).toBe("UPSTREAM_RATE_LIMITED");
+    expect(err.retryAfter).toBe(60);
+  });
+
+  it("treats other 403s as refusals, not rate limits", async () => {
+    server.use(http.get(`${BASE}/search/repositories`, () => HttpResponse.json({ message: "Resource not accessible" }, { status: 403 })));
+    const err = await make().search(DEFAULT_SPEC).catch((e) => e);
+    expect(err.code).toBe("UPSTREAM_UNAVAILABLE");
+  });
+
   it("maps 422 to UPSTREAM_INVALID_QUERY with GitHub's reason", async () => {
     server.use(
       http.get(`${BASE}/search/repositories`, () =>

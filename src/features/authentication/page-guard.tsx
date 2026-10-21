@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { features } from "@/config/env";
 import { getCurrentUser, type SessionUser } from "@/lib/auth/session";
 import { EmptyState } from "@/components/feedback/states";
 
 /** For signed-in pages: the user, or a redirect to sign-in (or a notice when auth is disabled). */
 export async function requirePageUser(path: string): Promise<{ user: SessionUser } | { blocked: React.ReactNode }> {
+  await connection();
   if (!features.auth()) {
     return {
       blocked: (

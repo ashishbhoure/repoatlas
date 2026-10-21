@@ -1,13 +1,16 @@
 import "server-only";
 import { z } from "zod";
 import { AppError, toApiErrorBody, toAppError } from "@/lib/errors";
+import { rethrowFrameworkErrors } from "@/lib/errors/server";
 import { log } from "@/lib/observability/logger";
 
 /** Converts any thrown error into the consistent API error format with a safe message. */
 export function errorResponse(e: unknown): Response {
   const err = toAppError(e);
-  if (err.status >= 500) {
+  if (err.code === "INTERNAL") {
     log.error("api.error", { code: err.code, error: err.cause ?? err });
+  } else if (err.status >= 500 && err.code !== "FEATURE_DISABLED") {
+    log.warn("api.upstream_error", { code: err.code, message: err.userMessage });
   }
   const headers: Record<string, string> = {};
   if (err.retryAfter !== undefined) headers["Retry-After"] = String(err.retryAfter);
@@ -20,6 +23,7 @@ export function route<A extends unknown[]>(fn: (...args: A) => Promise<Response>
     try {
       return await fn(...args);
     } catch (e) {
+      rethrowFrameworkErrors(e);
       return errorResponse(e);
     }
   };

@@ -190,7 +190,8 @@ export class GitHubClient {
       }
 
       if (res.status === 403 || res.status === 429) {
-        const wait = this.rateLimitWait(res.headers);
+        const body = await res.text().catch(() => "");
+        const wait = this.rateLimitWait(res.headers, res.status, body);
         if (wait !== null) {
           if (wait <= this.maxInlineWait && attempt < this.maxRetries) {
             await this.sleep(wait * 1000 + this.jitter());
@@ -224,7 +225,7 @@ export class GitHubClient {
   }
 
   /** Seconds to wait if this 403/429 is a rate limit; null when it is some other refusal. */
-  private rateLimitWait(h: Headers): number | null {
+  private rateLimitWait(h: Headers, status: number, body: string): number | null {
     const retryAfter = h.get("retry-after");
     if (retryAfter && /^\d+$/.test(retryAfter)) return Number(retryAfter);
     if (h.get("x-ratelimit-remaining") === "0") {
@@ -232,6 +233,8 @@ export class GitHubClient {
       if (Number.isFinite(reset)) return Math.max(1, Math.ceil(reset - this.now() / 1000));
       return 60;
     }
+    // Secondary rate limits can arrive without headers; GitHub then advises waiting a minute.
+    if (status === 429 || /rate limit/i.test(body)) return 60;
     return null;
   }
 

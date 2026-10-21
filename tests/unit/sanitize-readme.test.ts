@@ -46,6 +46,10 @@ describe("sanitizeReadme", () => {
     expect(out).not.toContain('id="location"');
   });
 
+  it("demotes headings so the page keeps a single h1", () => {
+    expect(clean("<h1>T</h1><h2>S</h2><h6>x</h6>")).toBe("<h2>T</h2><h3>S</h3><h6>x</h6>");
+  });
+
   it("strips inline styles", () => {
     expect(clean(`<img src="https://x/y.png" style="position:fixed">`)).not.toContain("style");
   });

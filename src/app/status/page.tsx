@@ -25,7 +25,7 @@ export default function StatusPage() {
 
 async function Status() {
   await connection();
-  const now = requestNow();
+  const now = await requestNow();
   const limits = getObservedRateLimits().sort((a, b) => a.resource.localeCompare(b.resource));
   const counts = await countSnapshots();
   const integrations = [

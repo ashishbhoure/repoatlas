@@ -1,3 +1,4 @@
+import { caught } from "@/lib/errors/server";
 import { requestNow } from "@/lib/request-time";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -9,7 +10,6 @@ import { MethodNote, PageHeader } from "@/components/layout/page-header";
 import { RepoList, RepoRow } from "@/components/repository/repo-row";
 import { FilterChips } from "@/components/search/filter-chips";
 import { ParamIssues } from "@/components/search/param-issues";
-import { toAppError } from "@/lib/errors";
 import { formatNumber } from "@/lib/format";
 import { parseSearchParams, specToQueryString, type SearchSpec } from "@/lib/validation/search";
 import { getMeasuredGrowth } from "@/server/analytics/snapshots";
@@ -28,8 +28,8 @@ const LOCKED: (keyof SearchSpec)[] = [
   "created", "createdFrom", "createdTo", "pushed", "pushedFrom", "pushedTo", "archived", "fork", "sort", "order", "page", "perPage",
 ];
 
-function candidateSpec(user: SearchSpec): SearchSpec {
-  const monthAgo = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+function candidateSpec(user: SearchSpec, now: number): SearchSpec {
+  const monthAgo = new Date(now - 30 * 86_400_000).toISOString().slice(0, 10);
   return {
     ...user,
     q: "",
@@ -96,7 +96,7 @@ async function GemsContent({ searchParams }: Pick<PageProps<"/hidden-gems">, "se
         <ParamIssues issues={issues} />
         <FilterChips spec={filterSpec} basePath="/hidden-gems" locked={LOCKED} />
         <Suspense key={qs} fallback={<ListSkeleton />}>
-          <GemList spec={candidateSpec(userSpec)} />
+          <GemList spec={candidateSpec(userSpec, await requestNow())} />
         </Suspense>
       </div>
     </div>
@@ -108,11 +108,11 @@ async function GemList({ spec }: { spec: SearchSpec }) {
   try {
     result = await searchRepositories(spec);
   } catch (e) {
-    return <ErrorState error={toAppError(e)} retryHref="/hidden-gems" />;
+    return <ErrorState error={caught(e)} retryHref="/hidden-gems" />;
   }
   const growth = await getMeasuredGrowth({ days: 30, limit: CANDIDATES, providerRepoIds: result.items.map((r) => r.providerId) });
   const ranked = rankHiddenGems(result.items, { growth: new Map(growth.map((g) => [g.providerRepoId, g.starsPerDay])) });
-  const now = requestNow();
+  const now = await requestNow();
   if (ranked.length === 0) {
     return <EmptyState title="No candidates match these filters">Try another language or topic.</EmptyState>;
   }

@@ -1,4 +1,5 @@
 import "server-only";
+import { connection } from "next/server";
 import type { DataFreshness } from "@/lib/cache/cached-fetch";
 import { maxPage, type SearchSpec } from "@/lib/validation/search";
 import { observeRepositories } from "@/server/analytics/observe";
@@ -17,6 +18,8 @@ export interface SearchOutcome extends SearchPage {
  * Results are observed (snapshotted) in the background to build growth history.
  */
 export async function searchRepositories(spec: SearchSpec): Promise<SearchOutcome> {
+  // Live data with relative date filters: always computed at request time.
+  await connection();
   const result = await getProvider("github").search(spec);
   observeRepositories(result.data.items, result.freshness.fetchedAt, "SEARCH");
   return {

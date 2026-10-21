@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { NAV_GROUPS, isActive } from "./nav-config";
 
@@ -11,8 +12,24 @@ interface Props {
   onNavigate?: () => void;
 }
 
-export function SidebarNav({ signedIn, authEnabled, onNavigate }: Props) {
+/**
+ * The pathname is request-time data on dynamic routes, so the active-link highlight
+ * streams in; the static fallback renders the same links without a highlight.
+ */
+export function SidebarNav(props: Props) {
+  return (
+    <Suspense fallback={<NavList {...props} pathname={null} />}>
+      <ActiveNav {...props} />
+    </Suspense>
+  );
+}
+
+function ActiveNav(props: Props) {
   const pathname = usePathname();
+  return <NavList {...props} pathname={pathname} />;
+}
+
+function NavList({ signedIn, authEnabled, onNavigate, pathname }: Props & { pathname: string | null }) {
   return (
     <nav aria-label="Main" className="flex flex-col gap-5">
       {NAV_GROUPS.map((group) => {
@@ -32,7 +49,7 @@ export function SidebarNav({ signedIn, authEnabled, onNavigate }: Props) {
             ) : (
               <ul className="flex flex-col gap-px">
                 {items.map((item) => {
-                  const active = isActive(pathname, item.href);
+                  const active = pathname !== null && isActive(pathname, item.href);
                   return (
                     <li key={item.href}>
                       <Link

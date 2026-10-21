@@ -12,11 +12,11 @@ export function LogoMark({ className = "size-6" }: { className?: string }) {
   );
 }
 
-export function Logo() {
+export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <Link href="/" className="flex items-center gap-2 rounded-md text-foreground" aria-label="RepoAtlas home">
       <LogoMark className="size-6 text-primary" />
-      <span className="text-[1.05rem] font-semibold tracking-tight">RepoAtlas</span>
+      <span className={compact ? "hidden text-[1.05rem] font-semibold tracking-tight sm:inline" : "text-[1.05rem] font-semibold tracking-tight"}>RepoAtlas</span>
     </Link>
   );
 }
