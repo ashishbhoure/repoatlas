@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: repoatlas
+      POSTGRES_PASSWORD: repoatlas
+      POSTGRES_DB: repoatlas
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U repoatlas -d repoatlas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Full app container. Not needed for `pnpm dev`; use `docker compose --profile app up`.
+  app:
+    profiles: ["app"]
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env.local
+    environment:
+      DATABASE_URL: postgresql://repoatlas:repoatlas@postgres:5432/repoatlas
+      APP_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

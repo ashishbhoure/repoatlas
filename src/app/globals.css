@@ -1,0 +1,219 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-heading: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-star: var(--star);
+  --color-contour: var(--contour);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * RepoAtlas palette — survey-map inspired.
+ * Paper: cool grey-green. Ink: slate navy. Primary: sea teal. Stars: survey ochre.
+ */
+:root {
+  --background: #f5f7f6;
+  --foreground: #1c2733;
+  --card: #ffffff;
+  --card-foreground: #1c2733;
+  --popover: #ffffff;
+  --popover-foreground: #1c2733;
+  --primary: #0b6e6c;
+  --primary-foreground: #ffffff;
+  --secondary: #e8eeeb;
+  --secondary-foreground: #1c2733;
+  --muted: #eaefed;
+  --muted-foreground: #56626d;
+  --accent: #dfece8;
+  --accent-foreground: #0d4c4a;
+  --destructive: #b42318;
+  --border: #d8dfdc;
+  --input: #cdd6d2;
+  --ring: #0b6e6c;
+  --star: #9a6210;
+  --contour: #0b6e6c;
+  --success: #2f7a3a;
+  --warning: #9a6210;
+  /* Categorical chart slots, validated for CVD separation (dataviz validator). */
+  --chart-1: #00968c;
+  --chart-2: #b07a1e;
+  --chart-3: #4561b0;
+  --chart-4: #a8466f;
+  --chart-5: #4f8a3c;
+  --radius: 0.4rem;
+  --sidebar: #eef2f0;
+  --sidebar-foreground: #1c2733;
+  --sidebar-primary: #0b6e6c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #dfece8;
+  --sidebar-accent-foreground: #0d4c4a;
+  --sidebar-border: #d8dfdc;
+  --sidebar-ring: #0b6e6c;
+}
+
+.dark {
+  --background: #0e1620;
+  --foreground: #e3e9ed;
+  --card: #142030;
+  --card-foreground: #e3e9ed;
+  --popover: #142030;
+  --popover-foreground: #e3e9ed;
+  --primary: #4cc5bf;
+  --primary-foreground: #05201f;
+  --secondary: #1b2938;
+  --secondary-foreground: #e3e9ed;
+  --muted: #182535;
+  --muted-foreground: #9aa8b5;
+  --accent: #15302f;
+  --accent-foreground: #9fe3dd;
+  --destructive: #f0857a;
+  --border: #243344;
+  --input: #2c3d50;
+  --ring: #4cc5bf;
+  --star: #e3aa4e;
+  --contour: #4cc5bf;
+  --success: #7cc285;
+  --warning: #e3aa4e;
+  --chart-1: #2aa9a2;
+  --chart-2: #b07f2c;
+  --chart-3: #7489dc;
+  --chart-4: #cc6c97;
+  --chart-5: #8fcb73;
+  --sidebar: #111b27;
+  --sidebar-foreground: #e3e9ed;
+  --sidebar-primary: #4cc5bf;
+  --sidebar-primary-foreground: #05201f;
+  --sidebar-accent: #15302f;
+  --sidebar-accent-foreground: #9fe3dd;
+  --sidebar-border: #243344;
+  --sidebar-ring: #4cc5bf;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    font-feature-settings: "ss02";
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- README rendering (sanitized GitHub HTML) ------------------------------ */
+.readme {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.readme :where(h1, h2, h3, h4) {
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.6em 0 0.6em;
+  scroll-margin-top: 5rem;
+}
+.readme h1 { font-size: 1.6rem; }
+.readme h2 { font-size: 1.3rem; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+.readme h3 { font-size: 1.1rem; }
+.readme :where(p, ul, ol, pre, table, blockquote, details) { margin: 0 0 1em; }
+.readme :where(ul, ol) { padding-left: 1.5em; }
+.readme ul { list-style: disc; }
+.readme ol { list-style: decimal; }
+.readme li + li { margin-top: 0.25em; }
+.readme a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.readme a.anchor { display: none; }
+.readme img { display: inline-block; max-width: 100%; height: auto; }
+.readme code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--muted);
+  padding: 0.15em 0.35em;
+  border-radius: var(--radius-sm);
+}
+.readme pre {
+  background: var(--muted);
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.readme pre code { background: none; padding: 0; font-size: inherit; }
+.readme blockquote { border-left: 3px solid var(--border); padding-left: 1em; color: var(--muted-foreground); }
+.readme table { display: block; overflow-x: auto; border-collapse: collapse; }
+.readme :where(th, td) { border: 1px solid var(--border); padding: 0.4em 0.7em; }
+.readme hr { border: 0; border-top: 1px solid var(--border); margin: 1.5em 0; }
+.readme summary { cursor: pointer; font-weight: 500; }
+.readme [align="center"] { text-align: center; }
+.readme .markdown-alert { border-left: 3px solid var(--primary); padding: 0.5em 1em; margin-bottom: 1em; }

@@ -1,0 +1,220 @@
+// RepoAtlas database schema. See docs/DATABASE.md for the purpose of each model.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Provider {
+  GITHUB
+}
+
+enum SnapshotSource {
+  SEARCH
+  DETAILS
+  CRON
+}
+
+// ---------------------------------------------------------------------------
+// Authentication (shape required by Better Auth's Prisma adapter)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions          Session[]
+  accounts          Account[]
+  savedRepositories SavedRepository[]
+  collections       Collection[]
+  savedSearches     SavedSearch[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ---------------------------------------------------------------------------
+// User data
+// ---------------------------------------------------------------------------
+
+/// A repository bookmarked by a user. Identified by the provider's stable id;
+/// fullName is display metadata and may go stale after a rename/transfer.
+model SavedRepository {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       Provider @default(GITHUB)
+  providerRepoId String
+  fullName       String
+  note           String?  @db.VarChar(2000)
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, provider, providerRepoId])
+  @@index([userId, createdAt])
+}
+
+/// A named, user-owned list of repositories. Private unless shareSlug is set.
+model Collection {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String   @db.VarChar(100)
+  description String?  @db.VarChar(1000)
+  /// Non-null only when the owner explicitly enabled sharing.
+  shareSlug   String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items CollectionRepository[]
+
+  @@unique([userId, name])
+  @@index([userId, updatedAt])
+}
+
+model CollectionRepository {
+  id             String     @id @default(cuid())
+  collectionId   String
+  collection     Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  provider       Provider   @default(GITHUB)
+  providerRepoId String
+  fullName       String
+  note           String?    @db.VarChar(2000)
+  addedAt        DateTime   @default(now())
+
+  @@unique([collectionId, provider, providerRepoId])
+  @@index([collectionId, addedAt])
+}
+
+/// A saved Explore configuration. `spec` is a validated SearchSpec (see src/lib/validation/search.ts).
+model SavedSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String   @db.VarChar(100)
+  spec      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Repository observations (needed for measured growth / trending)
+// ---------------------------------------------------------------------------
+
+/// A repository RepoAtlas has observed at least once. Snapshots hang off this.
+model TrackedRepository {
+  id             String    @id @default(cuid())
+  provider       Provider  @default(GITHUB)
+  providerRepoId String
+  fullName       String
+  /// Lower-cased fullName for case-insensitive lookups by owner/name.
+  fullNameLower  String
+  language       String?
+  firstSeenAt    DateTime  @default(now())
+  lastSnapshotAt DateTime?
+
+  snapshots RepositorySnapshot[]
+
+  @@unique([provider, providerRepoId])
+  @@index([provider, fullNameLower])
+  @@index([lastSnapshotAt])
+}
+
+/// A time-stamped observation of public counters, recorded from real API responses.
+model RepositorySnapshot {
+  id                  BigInt            @id @default(autoincrement())
+  trackedRepositoryId String
+  trackedRepository   TrackedRepository @relation(fields: [trackedRepositoryId], references: [id], onDelete: Cascade)
+  /// When the provider data was fetched (not when the row was written).
+  observedAt          DateTime
+  stars               Int
+  forks               Int
+  openIssues          Int
+  source              SnapshotSource
+
+  @@unique([trackedRepositoryId, observedAt])
+  @@index([observedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Infrastructure
+// ---------------------------------------------------------------------------
+
+/// Shared response cache for public provider data. Never stores user-private data.
+model CacheEntry {
+  key       String   @id
+  value     Json
+  etag      String?
+  fetchedAt DateTime
+  /// After this the entry is stale: revalidate (with ETag) before serving.
+  freshUntil DateTime
+  /// After this the entry must not be served, even as a fallback.
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+/// Fixed-window counters for rate limiting RepoAtlas's own API endpoints.
+model RateLimitBucket {
+  key         String   @id
+  count       Int
+  windowStart DateTime
+
+  @@index([windowStart])
+}
