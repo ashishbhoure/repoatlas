@@ -4,6 +4,8 @@ Find open-source repositories worth building on. RepoAtlas searches every public
 repository with advanced filters, ranks them with transparent, versioned scores, and lets you
 compare, save and watch projects.
 
+🌐 **Live demo: [repoatlas-sage.vercel.app](https://repoatlas-sage.vercel.app)**
+
 ![RepoAtlas home page](docs/screenshots/home.png)
 
 ▶️ **[Watch the demo video](docs/media/repoatlas-demo.mp4)** (79 s walkthrough: home, explore, repository page, compare, trending, hidden gems, topics)
