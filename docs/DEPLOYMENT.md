@@ -10,8 +10,17 @@ PostgreSQL. Configuration is read at request time, so one build works in every e
    `GITHUB_CLIENT_SECRET`, `CRON_SECRET` and (optionally) `ANTHROPIC_API_KEY`.
 3. Update the GitHub OAuth App callback to `{APP_URL}/api/auth/callback/github`.
 4. Run migrations on deploy: `pnpm db:deploy` (e.g. as a build step or a one-off job).
-5. `vercel.json` schedules `/api/cron/snapshots` (every 6 h) and `/api/cron/alerts` (every 3 h).
-   Vercel Cron sends `Authorization: Bearer $CRON_SECRET` automatically when `CRON_SECRET` is set.
+5. Scheduled jobs run from GitHub Actions (`.github/workflows/cron.yml`): `/api/cron/snapshots`
+   every 6 h and `/api/cron/alerts` every 3 h. Add repository secrets `APP_URL` and `CRON_SECRET`
+   (Settings → Secrets and variables → Actions). Vercel Cron is not used because the free Hobby
+   plan only allows daily jobs; on a paid plan you can move the schedules back into `vercel.json`
+   under `crons` — Vercel Cron sends `Authorization: Bearer $CRON_SECRET` automatically.
+
+### Free hosting
+
+Vercel Hobby (app) + Neon free tier (PostgreSQL, 0.5 GB, pauses when idle) + GitHub Actions
+(scheduled jobs) runs RepoAtlas at no cost. Use Neon's direct (non-pooled) connection string
+for `pnpm db:deploy` and the pooled one for the app's `DATABASE_URL`.
 
 ## Docker
 

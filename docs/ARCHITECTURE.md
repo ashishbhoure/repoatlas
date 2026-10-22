@@ -63,7 +63,7 @@ Browser ──► Next.js pages (RSC, Partial Prerendering) ─┐
 
 ## Background work
 
-| Job | Route | Schedule (vercel.json) | Batch |
+| Job | Route | Schedule (.github/workflows/cron.yml) | Batch |
 | --- | --- | --- | --- |
 | Snapshot refresh | `/api/cron/snapshots` | every 6 h | 50 (10 without token) |
 | Alert checks | `/api/cron/alerts` | every 3 h | 60 watches (10 without token) |
