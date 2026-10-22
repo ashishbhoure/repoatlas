@@ -4,6 +4,10 @@ Find open-source repositories worth building on. RepoAtlas searches every public
 repository with advanced filters, ranks them with transparent, versioned scores, and lets you
 compare, save and watch projects.
 
+![RepoAtlas home page](docs/screenshots/home.png)
+
+▶️ **[Watch the demo video](docs/media/repoatlas-demo.mp4)** (79 s walkthrough: home, explore, repository page, compare, trending, hidden gems, topics)
+
 - **Explore** — keyword search plus filters for language, topics, license, stars, forks, size,
   creation date, last push, archived/fork status, owner and good-first-issues. Every filter is
   applied by GitHub across all matches; the exact query sent to GitHub is shown under the results.
@@ -22,6 +26,23 @@ compare, save and watch projects.
 Nothing is fabricated: metrics come from the GitHub API or from observations RepoAtlas recorded,
 and every page says when its data was fetched. See [docs/RANKING.md](docs/RANKING.md) and the
 in-app *How rankings work* page.
+
+## Screenshots
+
+| Explore with filters | Repository page & health score |
+| --- | --- |
+| ![Explore page with language and star filters](docs/screenshots/explore.png) | ![Repository page for vercel/next.js with health score breakdown](docs/screenshots/repository.png) |
+| **Compare repositories** | **Trending (measured growth)** |
+| ![Side-by-side comparison of react, vue and svelte](docs/screenshots/compare.png) | ![Trending page ranked by measured star growth](docs/screenshots/trending.png) |
+| **Hidden gems** | **Topics** |
+| ![Hidden gems with gem scores](docs/screenshots/hidden-gems.png) | ![Topic categories](docs/screenshots/topics.png) |
+
+<details>
+<summary>Light theme</summary>
+
+![RepoAtlas home page in light theme](docs/screenshots/home-light.png)
+
+</details>
 
 ## Stack
 
